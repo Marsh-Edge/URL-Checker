@@ -1,5 +1,7 @@
 import re
 
+__version__ = "1.0.0"
+
 SEP = "-" * 50
 
 URL_PATTERN = re.compile(

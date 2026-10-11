@@ -20,6 +20,7 @@
 - [Project Structure](#project-structure)
 - [Installation](#installation)
 - [Usage](#usage)
+- [Commands](#commands)
 - [Roadmap](#roadmap)
 - [Contributing](#contributing)
 - [License](#license)
@@ -74,9 +75,12 @@ URL-Checker combines both checks into a single, lightweight CLI invocation. It p
 | Technology | Purpose |
 |------------|---------|
 | [Python](https://www.python.org/) | Primary language |
-| [httpx](https://www.python-httpx.org/) | Async-capable HTTP client for connectivity checks |
+| [httpx](https://www.python-httpx.org/) | HTTP client for connectivity checks |
+| [pytest](https://pytest.org/) | Testing framework |
 | `re` (stdlib) | Regular expression engine for URL parsing |
 | `time` (stdlib) | High-resolution timing via `time.monotonic()` |
+| `argparse` (stdlib) | Command-line argument parsing |
+| `json` (stdlib) | JSON output support |
 
 ---
 
@@ -84,12 +88,16 @@ URL-Checker combines both checks into a single, lightweight CLI invocation. It p
 
 ```
 URL-Checker/
-├── app.py          # Entry point -- orchestrates validation and connectivity check
-├── config.py       # Constants and compiled URL regex pattern
-├── validator.py    # URL format validation logic
-├── checker.py      # HTTP connectivity check via httpx
+├── app.py          # Entry point -- CLI interface and orchestration
+├── config.py       # Constants, version, and compiled URL regex pattern
+├── validator.py    # URL format validation logic with port validation
+├── checker.py      # HTTP connectivity check via httpx (with injectable client)
+├── requirements.txt # Project dependencies
 ├── LICENSE         # MIT License
-└── README.md       # This file
+├── README.md       # This file
+└── tests/          # Test suite
+    ├── test_validator.py
+    └── test_checker.py
 ```
 
 ---
@@ -110,23 +118,25 @@ URL-Checker/
    cd URL-Checker
    ```
 
-2. **Install the dependency**
+2. **Install dependencies**
 
    ```bash
-   pip install httpx
+   pip install -r requirements.txt
    ```
 
 3. **Verify installation**
 
    ```bash
-   python app.py
+   python app.py --version
    ```
 
 ---
 
 ## Usage
 
-Run the tool from the project directory:
+### Interactive Mode
+
+Run the tool from the project directory without arguments to enter interactive mode:
 
 ```bash
 python app.py
@@ -134,7 +144,17 @@ python app.py
 
 You will be prompted to enter a URL. The tool will validate its format and then test connectivity.
 
-### Example -- Valid URL
+### Non-Interactive Mode
+
+You can also pass a URL directly as an argument:
+
+```bash
+python app.py https://www.example.com
+```
+
+If valid and reachable, it will exit with code `0`. Otherwise, it will exit with a non-zero code.
+
+### Example -- Valid URL (Interactive)
 
 ```
 Enter URL to check: https://www.example.com
@@ -149,18 +169,18 @@ Enter URL to check: https://www.example.com
 Result: VALID and REACHABLE (200 - 142ms)
 ```
 
-### Example -- Invalid URL
+### Example -- Invalid URL (Interactive)
 
 ```
 Enter URL to check: not-a-url
 
 --------------------------------------------------
 [*] Validating URL format... FAILED
-[!] Error: URL must include a scheme (http:// or https://)
+[!] Error: URL format is invalid
 --------------------------------------------------
 ```
 
-### Example -- Unreachable Server
+### Example -- Unreachable Server (Interactive)
 
 ```
 Enter URL to check: https://this-server-does-not-exist.invalid
@@ -176,6 +196,27 @@ Result: FAILED
 
 ---
 
+## Commands
+
+| Command | Description |
+|---------|-------------|
+| `python app.py` | Run in interactive mode |
+| `python app.py <url>` | Check a URL non-interactively |
+| `python app.py -t 5 https://example.com` | Set custom timeout (seconds) |
+| `python app.py --json https://example.com` | Output JSON for scripting/automation |
+| `python app.py --quiet https://example.com` | Minimal output (useful for CI) |
+| `python app.py --version` | Show version |
+
+### Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| `0` | URL is valid and server is reachable |
+| `1` | Invalid URL or server is unreachable |
+| `130` | Interrupted by user (Ctrl+C) |
+
+---
+
 ## Roadmap
 
 ### Completed
@@ -188,15 +229,20 @@ Result: FAILED
 - [x] Response time measurement
 - [x] Redirect following
 - [x] Timeout and error handling
+- [x] CLI arguments (URL, timeout, JSON, quiet modes)
+- [x] Proper exit codes for automation
+- [x] Port range validation (1-65535)
+- [x] `requirements.txt` for dependency management
+- [x] Unit test suite with pytest
 
 ### Planned
 
 - [ ] Machine learning-based URL classification (phishing / malicious detection)
 - [ ] Batch URL checking from file input
-- [ ] JSON output mode for scripting and automation
 - [ ] DNS resolution check
 - [ ] SSL certificate validation
-- [ ] `requirements.txt` or `pyproject.toml` for dependency management
+- [ ] `pyproject.toml` for packaging
+- [ ] Colorized output
 
 ---
 
